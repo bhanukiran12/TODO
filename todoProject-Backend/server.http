@@ -1,0 +1,24 @@
+###
+
+GET http://localhost:5000/todos
+
+### 
+
+POST http://localhost:5000/todos/save
+Content-Type: application/json
+
+{
+    "data" : [{
+        "id" : "efsrijebiun",
+        "name" : "Learn HTML",
+        "status" : true 
+    },{
+        "id" : "dsfe",
+        "name" : "Learn CSS",
+        "status" : true 
+    }]
+}
+
+###
+
+DELETE  http://localhost:5000/todos/delete
