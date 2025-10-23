@@ -15,7 +15,7 @@ const App = () => {
         method: "GET",
       };
 
-      const getResponse = await fetch("http://localhost:5000/todos", options);
+      const getResponse = await fetch("https://todo-backend-c4f7sr9ls-bhanu-kirans-projects-78641a59.vercel.app/todos", options);
       const actualResponse = await getResponse.json();
       updateTodo(actualResponse);
     };
@@ -54,7 +54,7 @@ const App = () => {
     };
 
     const deleteResponse = await fetch(
-      "http://localhost:5000/todos/delete",
+      "https://todo-backend-c4f7sr9ls-bhanu-kirans-projects-78641a59.vercel.app/todos/delete",
       deleteOptions
     );
 
@@ -68,7 +68,7 @@ const App = () => {
         body: JSON.stringify(requestObj),
       };
       try {
-        await fetch("http://localhost:5000/todos/save", options);
+        await fetch("https://todo-backend-c4f7sr9ls-bhanu-kirans-projects-78641a59.vercel.app/todos/save", options);
       } catch (e) {
         console.log(e.message);
       }
