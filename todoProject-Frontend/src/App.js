@@ -1,149 +1,142 @@
-import React, { Component } from "react";
+import { useState } from "react";
+import { useEffect } from "react";
 import TodoItem from "./Components/TodoItem";
 import { v4 as uuidv4 } from "uuid";
 import "./App.css";
 
-class App extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      inputtedTodoList: [],
-      inputValue: "",
-      removeMessage: "",
-    };
-  }
+const App = () => {
+  const [inputtedTodoList, updateTodo] = useState([]);
+  const [inputValue, updateValue] = useState("");
+  const [removeMessage, updateRemoveMessage] = useState("");
 
-  componentDidMount() {
-    this.getTodos();
-  }
-
-  getTodos = async () => {
-    try {
-      const response = await fetch("https://todo-n5dn.vercel.app/todos", {
+  useEffect(() => {
+    const getTodos = async () => {
+      const options = {
         method: "GET",
-      });
-      const data = await response.json();
-      this.setState({ inputtedTodoList: data });
-    } catch (err) {
-      console.error(err);
-    }
+      };
+
+      const getResponse = await fetch("https://todo-n5dn.vercel.app/todos", options); 
+      const actualResponse = await getResponse.json();
+      updateTodo(actualResponse);
+    };
+    getTodos();
+  }, []);
+
+  const onEnter = (event) => {
+    updateValue(event.target.value);
   };
 
-  onEnter = (event) => {
-    this.setState({ inputValue: event.target.value });
+  const updateTodoList = (arrList) => {
+    updateTodo(arrList);
   };
 
-  updateTodoList = (arrList) => {
-    this.setState({ inputtedTodoList: arrList });
+  const clearInput = () => {
+    updateValue("");
   };
 
-  clearInput = () => {
-    this.setState({ inputValue: "" });
-  };
-
-  deleteTodo = (id) => {
-    const filteredList = this.state.inputtedTodoList.filter(
-      (item) => item.id !== id
+  const deleteTodo = (id) => {
+    const filteredList = inputtedTodoList.filter(
+      (eachitem) => eachitem.id !== id
     );
-    this.setState({ inputtedTodoList: filteredList, removeMessage: "Todo deleted Successfully" });
+    updateTodo([...filteredList]);
 
+    updateRemoveMessage("Todo deleted Successfully");
     setTimeout(() => {
-      this.setState({ removeMessage: "" });
+      updateRemoveMessage("");
     }, 1000);
   };
 
-  onSave = async () => {
-    const requestObj = { data: [...this.state.inputtedTodoList] };
+  const onSave = async () => {
+    const requestObj = { data: [...inputtedTodoList] };
 
-    try {
-    
+    const deleteOptions = {
+      method: "DELETE",
+    };
 
-      await fetch("https://todo-n5dn.vercel.app/todos/save", {
+    const deleteResponse = await fetch(
+      "https://todo-n5dn.vercel.app/todos/delete", 
+      deleteOptions
+    );
+
+    if (deleteResponse) {
+      const options = {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Accept: "application/json",
         },
         body: JSON.stringify(requestObj),
-      });
-    } catch (err) {
-      console.log(err.message);
+      };
+      try {
+        await fetch("https://todo-n5dn.vercel.app/todos/save", options); 
+      } catch (e) {
+        console.log(e.message);
+      }
     }
   };
 
-  addItem = () => {
-    const { inputValue, inputtedTodoList } = this.state;
-
-    if (inputValue.trim() === "") {
-      alert("Please enter a valid todo");
-      return;
-    }
-
-    const newObj = {
+  const addItem = () => {
+    let newObj = {
       id: uuidv4(),
       name: inputValue,
       status: "false",
     };
 
-    this.setState({
-      inputtedTodoList: [...inputtedTodoList, newObj],
-      inputValue: "",
-    });
+    if (inputValue === "") {
+      alert("Please enter a valid todo");
+    } else {
+      updateTodo([...inputtedTodoList, newObj]);
+    }
+    clearInput();
   };
 
-  render() {
-    const { inputtedTodoList, inputValue, removeMessage } = this.state;
+  return (
 
-    return (
-      <div className="todos-bg-container">
-        <div className="container">
-          <div className="row">
-            <div className="col-12">
-              <h1 className="todos-heading">Todos</h1>
-              <h1 className="create-task-heading">
-                Create <span className="create-task-heading-subpart">Task</span>
-              </h1>
+     <div class="todos-bg-container">
+      <div class="container">
+        <div class="row">
+          <div class="col-12">
+            <h1 class="todos-heading">Todos</h1>
+            <h1 class="create-task-heading">
+              Create <span class="create-task-heading-subpart">Task</span>
+            </h1>
+          
+            
+            <input
+          onChange={onEnter}
+          value={inputValue}
+       
+          type="text"
+          id="todoUserInput" class="todo-user-input" placeholder="What needs to be done?"
+          
+        />
+        <button onClick={addItem} id="button" class="button" >
+          Add
+        </button>
+            <h1 class="todo-items-heading">
+              My <span class="todo-items-heading-subpart">Tasks</span>
+            </h1>
 
-              <input
-                type="text"
-                id="todoUserInput"
-                className="todo-user-input"
-                placeholder="What needs to be done?"
-                value={inputValue}
-                onChange={this.onEnter}
-              />
-              <button onClick={this.addItem} id="button" className="button">
-                Add
-              </button>
-
-              <h1 className="todo-items-heading">
-                My <span className="todo-items-heading-subpart">Tasks</span>
-              </h1>
-
-              <ul className="todo-items-container" id="todoItemsContainer">
-                {inputtedTodoList.map((eachitem) => (
-                  <TodoItem
-                    key={eachitem.id}
-                    each={eachitem}
-                    deleteFun={this.deleteTodo}
-                    todosList={inputtedTodoList}
-                    todosListUpdateFuncPass={this.updateTodoList}
-                    checkStatus={eachitem.status}
-                  />
-                ))}
-              </ul>
-
-              <button onClick={this.onSave} className="button" id="saveTodoButton">
-                Save
-              </button>
-            </div>
-
-            {removeMessage && <p className="remove-message">{removeMessage}</p>}
+            <ul class="todo-items-container" id="todoItemsContainer">    {inputtedTodoList.map((eachitem) => (
+            <TodoItem
+              key={eachitem.id}
+              each={eachitem}
+              deleteFun={deleteTodo}
+              todosList={inputtedTodoList}
+              todosListUpdateFuncPass={updateTodoList}
+              checkStatus={eachitem.status}
+            />
+          ))}</ul>
+            <button onClick={onSave} class="button" id="saveTodoButton">Save</button>
           </div>
+   
+         {removeMessage && <p className="remove-message">{removeMessage}</p>}
+       
         </div>
       </div>
-    );
-  }
-}
+     </div>
+  )
+  
+  };
 
 export default App;
