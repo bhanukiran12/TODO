@@ -1,18 +1,12 @@
-import express from "express";
-import cors from "cors";
-import sqlite3 from "sqlite3";
-import { open } from "sqlite";
-import path from "path";
-import { fileURLToPath } from "url";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const express = require("express");
+const sqlite3 = require("sqlite3");
+const { open } = require("sqlite");
+const path = require("path");
 
 const app = express();
 app.use(express.json());
-app.use(cors());
 
-// point to read-only db file bundled in the repo
+// path to database
 const dbPath = path.join(__dirname, "todo.db");
 
 let db;
@@ -66,7 +60,7 @@ app.delete("/todos/delete", async (req, res) => {
   }
 });
 
-// initialize DB then start server (local dev only)
+// initialize DB then start server
 const PORT = process.env.PORT || 5000;
 initDb().then(() => {
   app.listen(PORT, () =>
@@ -74,4 +68,4 @@ initDb().then(() => {
   );
 });
 
-export default app; // required for Vercel’s serverless detection
+module.exports = app;
