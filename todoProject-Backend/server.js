@@ -1,83 +1,65 @@
 const express = require("express");
+const app = express();
+app.use(express.json());
 const cors = require("cors");
+app.use(cors());
 const sqlite3 = require("sqlite3");
 const { open } = require("sqlite");
 const path = require("path");
 
-const app = express();
-app.use(express.json());
-app.use(cors());
-
 const dbPath = path.join(__dirname, "todo.db");
 let db;
+const PORT = 5000;
 
-async function initDb() {
+const initializer = async () => {
   try {
     db = await open({
       filename: dbPath,
       driver: sqlite3.Database,
     });
-    console.log("SQLite database connected");
-
-    // Create table if not exists
-    await db.run(`
-      CREATE TABLE IF NOT EXISTS todo (
-        id TEXT PRIMARY KEY,
-        name TEXT NOT NULL,
-        status TEXT NOT NULL
-      )
-    `);
-    console.log("Table 'todo' ready");
-  } catch (err) {
-    console.error("Failed to initialize DB:", err);
+    app.listen(PORT, () => {
+      console.log("server is running at http://localhost:5000");
+    });
+  } catch (e) {
+    console.log(e.message);
   }
-}
+};
 
-// GET all todos
 app.get("/todos", async (req, res) => {
-  try {
-    const todos = await db.all("SELECT * FROM todo");
-    res.json(todos);
-  } catch (err) {
-    console.error("GET /todos error:", err);
-    res.status(500).json({ error: "Failed to fetch todos" });
-  }
+  const getQuery = `
+        SELECT * from todo
+    `;
+  const responseGot = await db.all(getQuery);
+  res.send(responseGot);
 });
 
-// POST bulk insert
 app.post("/todos/save", async (req, res) => {
-  try {
-    const { data } = req.body;
-    const stmt = await db.prepare(
-      "INSERT INTO todo (id, name, status) VALUES (?, ?, ?)"
-    );
-    for (const { id, name, status } of data) {
-      await stmt.run(id, name, status);
+  const { data } = req.body;
+
+  for (let obj of data) {
+    const { id, name, status } = obj;
+    const postQuery = `
+        INSERT INTO todo (id , name , status)
+        VALUES ("${id}" , "${name}" , "${status}")
+    `;
+    const getQuery = `
+      SELECT name from todo WHERE name = "${name}"
+    `;
+    const getResponse = await db.all(getQuery);
+
+    if (getResponse.length === 0) {
+      await db.run(postQuery);
     }
-    await stmt.finalize();
-    res.json({ message: "All todos saved successfully" });
-  } catch (err) {
-    console.error("POST /todos/save error:", err);
-    res.status(500).json({ error: "Failed to save todos" });
   }
+  res.send({ message: "All todos saved successfully" });
 });
 
-// DELETE all todos
 app.delete("/todos/delete", async (req, res) => {
-  try {
-    await db.run("DELETE FROM todo");
-    res.json({ message: "All todos deleted" });
-  } catch (err) {
-    console.error("DELETE /todos/delete error:", err);
-    res.status(500).json({ error: "Failed to delete todos" });
-  }
+  const deleteQuery = `
+    DELETE FROM todo;
+  `;
+  const deleteResponse = await db.run(deleteQuery);
+  res.send({ message: "All todos Deleted" });
 });
 
-const PORT = process.env.PORT || 5000;
-initDb().then(() => {
-  app.listen(PORT, () =>
-    console.log(`Server running at http://localhost:${PORT}`)
-  );
-});
-
-module.exports = app;
+initializer();
