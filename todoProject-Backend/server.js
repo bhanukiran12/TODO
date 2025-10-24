@@ -6,20 +6,31 @@ const path = require("path");
 
 const app = express();
 app.use(express.json());
-
-// Enable CORS for all origins (you can restrict later if needed)
 app.use(cors());
 
 const dbPath = path.join(__dirname, "todo.db");
 let db;
 
-// Initialize the database
 async function initDb() {
-  db = await open({
-    filename: dbPath,
-    driver: sqlite3.Database,
-  });
-  console.log("SQLite database connected");
+  try {
+    db = await open({
+      filename: dbPath,
+      driver: sqlite3.Database,
+    });
+    console.log("SQLite database connected");
+
+    // Create table if not exists
+    await db.run(`
+      CREATE TABLE IF NOT EXISTS todo (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        status TEXT NOT NULL
+      )
+    `);
+    console.log("Table 'todo' ready");
+  } catch (err) {
+    console.error("Failed to initialize DB:", err);
+  }
 }
 
 // GET all todos
@@ -28,7 +39,7 @@ app.get("/todos", async (req, res) => {
     const todos = await db.all("SELECT * FROM todo");
     res.json(todos);
   } catch (err) {
-    console.error(err);
+    console.error("GET /todos error:", err);
     res.status(500).json({ error: "Failed to fetch todos" });
   }
 });
@@ -46,7 +57,7 @@ app.post("/todos/save", async (req, res) => {
     await stmt.finalize();
     res.json({ message: "All todos saved successfully" });
   } catch (err) {
-    console.error(err);
+    console.error("POST /todos/save error:", err);
     res.status(500).json({ error: "Failed to save todos" });
   }
 });
@@ -57,7 +68,7 @@ app.delete("/todos/delete", async (req, res) => {
     await db.run("DELETE FROM todo");
     res.json({ message: "All todos deleted" });
   } catch (err) {
-    console.error(err);
+    console.error("DELETE /todos/delete error:", err);
     res.status(500).json({ error: "Failed to delete todos" });
   }
 });
