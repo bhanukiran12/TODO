@@ -56,7 +56,7 @@ class App extends Component {
     const requestObj = { data: [...this.state.inputtedTodoList] };
 
     try {
-      await fetch("https://todo-n5dn.vercel.app/todos/delete", { method: "DELETE" });
+    
 
       await fetch("https://todo-n5dn.vercel.app/todos/save", {
         method: "POST",
