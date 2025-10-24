@@ -1,4 +1,5 @@
 const express = require("express");
+const cors = require("cors");
 const sqlite3 = require("sqlite3");
 const { open } = require("sqlite");
 const path = require("path");
@@ -6,12 +7,13 @@ const path = require("path");
 const app = express();
 app.use(express.json());
 
-// path to database
-const dbPath = path.join(__dirname, "todo.db");
+// Enable CORS for all origins (you can restrict later if needed)
+app.use(cors());
 
+const dbPath = path.join(__dirname, "todo.db");
 let db;
 
-// open DB once at startup
+// Initialize the database
 async function initDb() {
   db = await open({
     filename: dbPath,
@@ -60,7 +62,6 @@ app.delete("/todos/delete", async (req, res) => {
   }
 });
 
-// initialize DB then start server
 const PORT = process.env.PORT || 5000;
 initDb().then(() => {
   app.listen(PORT, () =>
