@@ -15,7 +15,7 @@ const App = () => {
         method: "GET",
       };
 
-      const getResponse = await fetch("https://todo-backend-orcin-xi.vercel.app/todos", options);
+      const getResponse = await fetch("https://todo-n5dn.vercel.app/todos", options); 
       const actualResponse = await getResponse.json();
       updateTodo(actualResponse);
     };
@@ -54,7 +54,7 @@ const App = () => {
     };
 
     const deleteResponse = await fetch(
-      "https://todo-backend-orcin-xi.vercel.app/todos/delete",
+      "https://todo-n5dn.vercel.app/todos/delete", 
       deleteOptions
     );
 
@@ -68,7 +68,7 @@ const App = () => {
         body: JSON.stringify(requestObj),
       };
       try {
-        await fetch("https://todo-backend-orcin-xi.vercel.app/todos/save", options);
+        await fetch("https://todo-n5dn.vercel.app/todos/save", options); 
       } catch (e) {
         console.log(e.message);
       }
